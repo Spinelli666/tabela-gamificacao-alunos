@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-user-plus me-2"></i>
+                    {{ titulo|upper }}
+                </div>
+                
+                <div class="card-body">
+                    <!-- Informações do Grupo -->
+                    <div class="row mb-4">
+                        <div class="col-md-8">
+                            <h5 style="color: var(--cor-accent);">{{ grupo.nome }}</h5>
+                            {% if grupo.descricao %}
+                                <p class="text-muted">{{ grupo.descricao }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="stats-card" style="display: inline-block; padding: 10px 20px;">
+                                <span class="stats-number" style="font-size: 1.5rem;">{{ grupo.total_membros }}</span>
+                                <div class="stats-label">Membros Atuais</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.alunos.field.queryset %}
+                        <div class="mb-4">
+                            <h6 class="mb-3">
+                                <i class="fas fa-users me-2"></i>
+                                Selecione os alunos para adicionar ao grupo:
+                            </h6>
+                            
+                            <div class="row">
+                                {% for aluno in form.alunos.field.queryset %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="alunos" value="{{ aluno.id }}" id="aluno_{{ aluno.id }}">
+                                        <label class="form-check-label d-flex align-items-center" for="aluno_{{ aluno.id }}">
+                                            <div class="student-avatar me-3">
+                                                {{ aluno.nome|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ aluno.nome|truncatechars:25 }}</div>
+                                                <small class="text-muted">
+                                                    {{ aluno.matricula }} • {{ aluno.pontuacao_total|floatformat:1 }} pts
+                                                </small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if form.alunos.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.alunos.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Botões de seleção rápida -->
+                        <div class="mb-4">
+                            <button type="button" class="btn btn-outline-info btn-sm me-2" onclick="selecionarTodos()">
+                                <i class="fas fa-check-square me-1"></i>Selecionar Todos
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm" onclick="deselecionarTodos()">
+                                <i class="fas fa-square me-1"></i>Limpar Seleção
+                            </button>
+                        </div>
+                        {% endif %}
+
+                        <!-- Seção de Escolha do Líder -->
+                        {% if form.lider.field.queryset %}
+                        <div class="mb-4">
+                            <h6 class="mb-3">
+                                <i class="fas fa-crown me-2" style="color: #ffd700;"></i>
+                                Escolher Líder do Grupo:
+                            </h6>
+                            
+                            <div class="row">
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="lider" value="" id="lider_nenhum">
+                                        <label class="form-check-label d-flex align-items-center" for="lider_nenhum">
+                                            <div class="student-avatar me-3" style="background-color: #6c757d;">
+                                                <i class="fas fa-times"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">Nenhum líder</div>
+                                                <small class="text-muted">Não definir líder para este grupo</small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                {% for aluno in form.lider.field.queryset %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" 
+                                               name="lider" value="{{ aluno.id }}" id="lider_{{ aluno.id }}"
+                                               {% if form.lider.value == aluno.id|stringformat:"s" %}checked{% endif %}>
+                                        <label class="form-check-label d-flex align-items-center" for="lider_{{ aluno.id }}">
+                                            <div class="student-avatar me-3" style="border: 2px solid #ffd700;">
+                                                {{ aluno.nome|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ aluno.nome|truncatechars:25 }}</div>
+                                                <small class="text-muted">
+                                                    {{ aluno.matricula }} • {{ aluno.pontuacao_total|floatformat:1 }} pts
+                                                </small>
+                                                {% if grupo.lider == aluno %}
+                                                    <small class="text-warning"><i class="fas fa-crown me-1"></i>Líder Atual</small>
+                                                {% endif %}
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if form.lider.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.lider.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if form.alunos.field.queryset %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'gerenciar_grupos' %}" class="btn btn-cyber btn-cyber-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Voltar
+                            </a>
+                            
+                            <button type="submit" class="btn btn-cyber btn-cyber-primary">
+                                <i class="fas fa-user-plus me-2"></i>Adicionar Selecionados
+                            </button>
+                        </div>
+                        
+                        {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users-slash fa-4x mb-3" style="color: var(--cor-accent); opacity: 0.5;"></i>
+                            <h5>Todos os alunos já estão neste grupo!</h5>
+                            <p class="text-muted">
+                                Não há mais alunos disponíveis para adicionar a este grupo.
+                            </p>
+                            <a href="{% url 'gerenciar_grupos' %}" class="btn btn-cyber btn-cyber-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Voltar aos Grupos
+                            </a>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Membros Atuais do Grupo -->
+            {% if grupo.total_membros > 0 %}
+            <div class="cyber-card mt-4">
+                <div class="card-header">
+                    <i class="fas fa-users me-2"></i>
+                    MEMBROS ATUAIS DO GRUPO
+                </div>
+                
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-dark cyber-table">
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th class="text-center">Pontuação</th>
+                                    <th class="text-center">Data de Adição</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for membro in grupo.membros.all %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="student-avatar me-3">
+                                                {{ membro.aluno.nome|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">
+                                                    {{ membro.aluno.nome }}
+                                                    {% if grupo.lider == membro.aluno %}
+                                                        <i class="fas fa-crown ms-2" style="color: #ffd700;" title="Líder do Grupo"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <small class="text-muted">{{ membro.aluno.matricula }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold" style="color: var(--cor-accent);">
+                                            {{ membro.aluno.pontuacao_total|floatformat:1 }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <small class="text-muted">
+                                            {{ membro.data_adicao|date:"d/m/Y" }}
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{% url 'remover_membro' grupo.id membro.aluno.id %}" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Tem certeza que deseja remover {{ membro.aluno.nome }} do grupo?')"
+                                           title="Remover do grupo">
+                                            <i class="fas fa-user-times"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.student-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cor-primary), var(--cor-secondary));
+    color: #000;
+    font-weight: bold;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-check-label {
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.form-check-label:hover {
+    background-color: rgba(var(--cor-accent-rgb), 0.1);
+}
+
+.form-check-input:checked + .form-check-label {
+    background-color: rgba(var(--cor-accent-rgb), 0.2);
+    border: 1px solid var(--cor-accent);
+}
+
+.stats-card {
+    background: rgba(var(--cor-primary-rgb), 0.1);
+    border: 1px solid var(--cor-primary);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stats-number {
+    color: var(--cor-accent);
+    font-weight: 900;
+    text-shadow: 0 0 10px var(--cor-accent);
+}
+
+.stats-label {
+    color: var(--cor-text);
+    font-size: 0.85rem;
+}
+</style>
+
+<script>
+function selecionarTodos() {
+    const checkboxes = document.querySelectorAll('input[name="alunos"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+function deselecionarTodos() {
+    const checkboxes = document.querySelectorAll('input[name="alunos"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+</script>
+{% endblock %}

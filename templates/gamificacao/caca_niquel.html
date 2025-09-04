@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}🎰 Caça-Níquel - Sistema de Gamificação{% endblock %}
+
+{% block extra_css %}
+<style>
+    .caca-niquel-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 70vh;
+        border-radius: 20px;
+        padding: 30px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+    
+    .caca-niquel-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="stars" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23stars)"/></svg>');
+        pointer-events: none;
+    }
+    
+    .slot-machine {
+        background: linear-gradient(145deg, #2d3748, #1a202c);
+        border-radius: 25px;
+        padding: 40px;
+        text-align: center;
+        position: relative;
+        box-shadow: 
+            inset 0 -20px 40px rgba(0,0,0,0.3),
+            0 20px 40px rgba(0,0,0,0.2);
+        border: 3px solid #00d4ff;
+    }
+    
+    .slot-machine::before {
+        content: '🎰';
+        font-size: 4rem;
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a202c;
+        padding: 10px 20px;
+        border-radius: 50px;
+        border: 3px solid #00d4ff;
+    }
+    
+    .slot-display {
+        background: #000;
+        color: #00ff00;
+        font-family: 'Courier New', monospace;
+        font-size: 4rem;
+        font-weight: bold;
+        padding: 30px;
+        border-radius: 15px;
+        margin: 30px 0;
+        text-align: center;
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #00ff00;
+        box-shadow: inset 0 0 20px rgba(0,255,0,0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .slot-display.spinning {
+        animation: neonPulse 0.1s infinite alternate;
+    }
+    
+    @keyframes neonPulse {
+        from { 
+            text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 15px #00ff00; 
+            border-color: #00ff00;
+        }
+        to { 
+            text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00; 
+            border-color: #00ffff;
+        }
+    }
+    
+    @keyframes slideUp {
+        0% { transform: translateY(100px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+    }
+    
+    .resultado-premio {
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    .premio-dourado { 
+        color: #ffd700; 
+        text-shadow: 0 0 10px #ffd700; 
+    }
+    
+    .premio-prata { 
+        color: #c0c0c0; 
+        text-shadow: 0 0 10px #c0c0c0; 
+    }
+    
+    .premio-bronze { 
+        color: #cd7f32; 
+        text-shadow: 0 0 10px #cd7f32; 
+    }
+    
+    .premio-comum { 
+        color: #00ff00; 
+        text-shadow: 0 0 10px #00ff00; 
+    }
+    
+    .btn-slot {
+        background: linear-gradient(145deg, #ff6b6b, #ee5a24);
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        padding: 15px 40px;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 20px rgba(238, 90, 36, 0.3);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+    
+    .btn-slot:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 25px rgba(238, 90, 36, 0.4);
+        background: linear-gradient(145deg, #ee5a24, #ff6b6b);
+    }
+    
+    .btn-slot:active {
+        transform: translateY(0);
+    }
+    
+    .btn-slot:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .loading-spinner {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255,255,255,.3);
+        border-radius: 50%;
+        border-top-color: #00ff00;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="cyberpunk-title text-center mb-4">
+                <span class="neon-text">🎰 CAÇA-NÍQUEL CYBERPUNK</span>
+            </h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Máquina Caça-Níquel -->
+        <div class="col-12">
+            <div class="caca-niquel-container">
+                <div class="slot-machine">
+                    <h2 class="text-white mb-4">🎮 SISTEMA DE RECOMPENSAS</h2>
+                    
+                    <div class="mb-4">
+                        <label for="alunoSelect" class="form-label text-white fs-5">👤 Selecione o Aluno:</label>
+                        <select class="form-select form-select-lg" id="alunoSelect">
+                            <option value="">-- Escolha um aluno --</option>
+                            {% for aluno in alunos %}
+                                <option value="{{ aluno.id }}">{{ aluno.nome }} ({{ aluno.pontuacao_total|floatformat:1 }} pts)</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="slot-display" id="slotDisplay">
+                        <span id="displayText">🎲 PRONTO PARA JOGAR</span>
+                    </div>
+                    
+                    <button class="btn-slot" id="btnJogar" onclick="jogarCacaNiquel()">
+                        🎰 JOGAR AGORA!
+                    </button>
+                    
+                    <div class="mt-4" id="resultadoJogada" style="display: none;">
+                        <div class="alert alert-success">
+                            <h4 id="textoResultado"></h4>
+                            <p id="detalhesResultado"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Menu de Navegação Rápida -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <div class="btn-group" role="group">
+                <a href="{% url 'historico_caca_niquel' %}" class="btn btn-outline-info btn-lg">
+                    📊 Histórico Completo
+                </a>
+                <a href="{% url 'premios_pendentes' %}" class="btn btn-outline-warning btn-lg">
+                    🎁 Prêmios Pendentes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function jogarCacaNiquel() {
+        const alunoSelect = document.getElementById('alunoSelect');
+        const alunoId = alunoSelect ? alunoSelect.value : null;
+        
+        if (!alunoId) {
+            alert('Por favor, selecione um aluno primeiro!');
+            return;
+        }
+        
+        const btnJogar = document.getElementById('btnJogar');
+        const slotDisplay = document.getElementById('slotDisplay');
+        const displayText = document.getElementById('displayText');
+        const resultadoDiv = document.getElementById('resultadoJogada');
+        
+        // Verificar se elementos existem antes de usar
+        if (!btnJogar || !slotDisplay || !displayText) {
+            console.error('❌ Elementos essenciais não encontrados no DOM');
+            alert('Erro na interface! Recarregue a página.');
+            return;
+        }
+        
+        // Desabilitar botão e iniciar animação
+        btnJogar.disabled = true;
+        btnJogar.innerHTML = '<span class="loading-spinner"></span> JOGANDO...';
+        slotDisplay.classList.add('spinning');
+        
+        if (resultadoDiv) {
+            resultadoDiv.style.display = 'none';
+        }
+        
+        // Animação de rolagem dos símbolos
+        const simbolos = ['🎲', '🎰', '🍭', '🥨', '💰', '💵', '📝'];
+        let contador = 0;
+        
+        const intervalo = setInterval(() => {
+            displayText.textContent = simbolos[Math.floor(Math.random() * simbolos.length)];
+            contador++;
+            
+            if (contador > 20) { // Para após 2 segundos
+                clearInterval(intervalo);
+                
+                // Fazer requisição para o servidor
+                console.log('🎰 Iniciando requisição para jogar...');
+                console.log('Aluno ID:', alunoId);
+                console.log('URL:', '{% url "jogar_caca_niquel" %}');
+                
+                fetch('{% url "jogar_caca_niquel" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: `aluno_id=${alunoId}`
+                })
+                .then(response => {
+                    console.log('✅ Resposta recebida:', response);
+                    console.log('Status:', response.status);
+                    console.log('Headers:', Object.fromEntries(response.headers.entries()));
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    return response.text(); // Usar text() primeiro para debug
+                })
+                .then(text => {
+                    console.log('📄 Texto da resposta:', text);
+                    
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                        console.log('📊 JSON parseado:', data);
+                    } catch (e) {
+                        console.error('❌ Erro ao fazer parse do JSON:', e);
+                        console.error('Texto recebido:', text);
+                        throw new Error('Resposta não é um JSON válido');
+                    }
+                    
+                    if (data.sucesso) {
+                        console.log('🎉 Sucesso! Dados:', data);
+                        
+                        // Mostrar resultado no slot
+                        if (slotDisplay) {
+                            slotDisplay.classList.remove('spinning');
+                        }
+                        if (displayText) {
+                            displayText.innerHTML = `<span class="resultado-premio ${data.recompensa.classe}">${data.recompensa.emoji} ${data.recompensa.texto}</span>`;
+                        }
+                        
+                        // Mostrar detalhes com verificação de elementos
+                        const textoResultado = document.getElementById('textoResultado');
+                        const detalhesResultado = document.getElementById('detalhesResultado');
+                        
+                        if (textoResultado) {
+                            textoResultado.textContent = `🎉 ${data.aluno} ganhou: ${data.recompensa.texto}!`;
+                        }
+                        
+                        if (detalhesResultado) {
+                            detalhesResultado.textContent = `Número sorteado: ${data.numero_sorteado}/100`;
+                        }
+                        
+                        if (resultadoDiv) {
+                            resultadoDiv.style.display = 'block';
+                        }
+                        
+                        console.log('✨ Interface atualizada com sucesso!');
+                    } else {
+                        console.error('❌ Erro retornado pelo servidor:', data);
+                        alert('Erro ao jogar: ' + (data.erro || 'Erro desconhecido'));
+                        
+                        if (displayText) {
+                            displayText.textContent = '❌ ERRO';
+                        }
+                        if (slotDisplay) {
+                            slotDisplay.classList.remove('spinning');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('💥 Erro na requisição:', error);
+                    console.error('Tipo do erro:', error.name);
+                    console.error('Mensagem:', error.message);
+                    console.error('Stack:', error.stack);
+                    
+                    alert('Erro de conexão: ' + error.message);
+                    
+                    if (displayText) {
+                        displayText.textContent = '❌ ERRO';
+                    }
+                    if (slotDisplay) {
+                        slotDisplay.classList.remove('spinning');
+                    }
+                })
+                .finally(() => {
+                    // Reabilitar botão
+                    if (btnJogar) {
+                        btnJogar.disabled = false;
+                        btnJogar.innerHTML = '🎰 JOGAR AGORA!';
+                    }
+                });
+            }
+        }, 100);
+    }
+    
+    // Efeito sonoro (opcional - pode ser removido se não quiser)
+    function playSound(type) {
+        // Aqui poderia adicionar efeitos sonoros
+        console.log(`Som: ${type}`);
+    }
+</script>
+{% endblock %}

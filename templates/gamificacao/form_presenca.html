@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }} - Sistema de Gamificação{% endblock %}
+
+{% block content %}
+<div class="container main-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-4">
+                <h1 class="display-5 fw-bold" style="color: var(--cor-secondary); text-shadow: 0 0 15px var(--cor-secondary);">
+                    <i class="fas fa-user-check me-3"></i>
+                    {{ titulo|upper }}
+                </h1>
+                <p class="lead text-muted">
+                    {% if is_edit %}
+                    Atualize as informações da presença
+                    {% else %}
+                    Registre a presença do aluno - <span style="color: var(--cor-accent);">+1 ponto por presença / -0.5 ponto por falta</span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h5 class="mb-0" style="color: var(--cor-accent);">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        {% if is_edit %}Editar Presença{% else %}Nova Presença{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Aluno -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.aluno.id_for_label }}" class="form-label text-light">
+                                    <i class="fas fa-user me-1"></i>{{ form.aluno.label }}
+                                </label>
+                                {{ form.aluno }}
+                                {% if form.aluno.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.aluno.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Data da Presença -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.data_presenca.id_for_label }}" class="form-label text-light">
+                                    <i class="fas fa-calendar me-1"></i>{{ form.data_presenca.label }}
+                                </label>
+                                {{ form.data_presenca }}
+                                {% if form.data_presenca.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.data_presenca.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Status da Presença -->
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label class="form-label text-light">
+                                    <i class="fas fa-check-circle me-1"></i>Status da Presença
+                                </label>
+                                <div class="form-check-container">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="presente" id="presente_sim" value="True" 
+                                               {% if form.presente.value == True or form.presente.value == 'True' or not form.presente.value %}checked{% endif %}>
+                                        <label class="form-check-label text-success" for="presente_sim">
+                                            <i class="fas fa-check me-1"></i>Presente (+1 ponto)
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline ms-4">
+                                        <input class="form-check-input" type="radio" name="presente" id="presente_nao" value="False" 
+                                               {% if form.presente.value == False or form.presente.value == 'False' %}checked{% endif %}>
+                                        <label class="form-check-label text-danger" for="presente_nao">
+                                            <i class="fas fa-times me-1"></i>Faltou (-0.5 pontos)
+                                        </label>
+                                    </div>
+                                </div>
+                                {% if form.presente.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.presente.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Observações -->
+                        <div class="row">
+                            <div class="col-12 mb-4">
+                                <label for="{{ form.observacoes.id_for_label }}" class="form-label text-light">
+                                    <i class="fas fa-comment me-1"></i>{{ form.observacoes.label }}
+                                </label>
+                                {{ form.observacoes }}
+                                {% if form.observacoes.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.observacoes.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    Observações opcionais sobre a presença (ex: chegou atrasado, saiu mais cedo, etc.)
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Ação -->
+                        <div class="row">
+                            <div class="col-12 d-flex justify-content-between">
+                                <div>
+                                    <a href="{% url 'gerenciar_presencas' %}" class="btn btn-cyber btn-cyber-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                    </a>
+                                </div>
+                                <div>
+                                    <button type="submit" class="btn btn-cyber btn-cyber-primary">
+                                        <i class="fas fa-save me-2"></i>
+                                        {% if is_edit %}Atualizar Presença{% else %}Salvar Presença{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if is_edit and presenca %}
+            <!-- Informações Adicionais -->
+            <div class="cyber-card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0" style="color: var(--cor-accent);">
+                        <i class="fas fa-info-circle me-2"></i>Informações Adicionais
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Lançada por:</strong> 
+                                {% if presenca.lancada_por %}{{ presenca.lancada_por.username }}{% else %}Sistema{% endif %}
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Data de Lançamento:</strong> 
+                                {{ presenca.data_lancamento|date:"d/m/Y H:i:s" }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Última Atualização:</strong> 
+                                {{ presenca.data_atualizacao|date:"d/m/Y H:i:s" }}
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Pontos Ganhos:</strong> 
+                                <span class="{% if presenca.presente %}text-success{% else %}text-danger{% endif %}">
+                                    {% if presenca.pontos > 0 %}+{% endif %}{{ presenca.pontos }} ponto{% if presenca.pontos != 1 and presenca.pontos != -1 %}s{% endif %}
+                                </span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-check-container {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid var(--cor-secondary);
+}
+
+.form-check-input:checked {
+    background-color: var(--cor-accent);
+    border-color: var(--cor-accent);
+}
+
+.form-check-input:focus {
+    border-color: var(--cor-accent);
+    box-shadow: 0 0 0 0.2rem rgba(255, 20, 147, 0.25);
+}
+
+.form-check-label {
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-check-input:checked + .form-check-label {
+    text-shadow: 0 0 5px currentColor;
+}
+
+.invalid-feedback {
+    color: var(--cor-danger) !important;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Definir data de hoje como padrão se estiver vazio
+    const dataPresencaInput = document.getElementById('{{ form.data_presenca.id_for_label }}');
+    if (dataPresencaInput && !dataPresencaInput.value) {
+        const hoje = new Date().toISOString().split('T')[0];
+        dataPresencaInput.value = hoje;
+    }
+    
+    // Adicionar efeito visual aos radio buttons
+    const radioButtons = document.querySelectorAll('input[name="presente"]');
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const container = document.querySelector('.form-check-container');
+            if (this.value === 'True') {
+                container.style.borderColor = 'var(--cor-success)';
+                container.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
+            } else {
+                container.style.borderColor = 'var(--cor-danger)';
+                container.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
+            }
+        });
+        
+        // Aplicar estilo inicial
+        if (radio.checked) {
+            radio.dispatchEvent(new Event('change'));
+        }
+    });
+    
+    // Validação do formulário
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %}

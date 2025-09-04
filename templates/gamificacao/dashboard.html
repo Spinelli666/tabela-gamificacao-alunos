@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Sistema de Gamificação{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-container">
+    <!-- Header do Dashboard -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4 fw-bold" style="color: var(--cor-primary); text-shadow: 0 0 20px var(--cor-primary); text-transform: uppercase; letter-spacing: 3px;">
+                <i class="fas fa-trophy me-3"></i>
+                RANKING DE SCORES
+            </h1>
+            <p class="lead" style="color: var(--cor-accent); text-shadow: 0 0 10px var(--cor-accent);">
+                Sistema de Gamificação Escolar
+            </p>
+        </div>
+    </div>
+    
+    <!-- Estatísticas Gerais -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <span class="stats-number">{{ total_alunos }}</span>
+                <span class="stats-label">
+                    <i class="fas fa-users me-2"></i>
+                    Total de Alunos
+                </span>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <span class="stats-number">{{ total_atividades }}</span>
+                <span class="stats-label">
+                    <i class="fas fa-tasks me-2"></i>
+                    Atividades
+                </span>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <span class="stats-number">{{ media_geral }}</span>
+                <span class="stats-label">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Média Total
+                </span>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card" id="contador-tempo">
+                <strong>CARREGANDO...</strong>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filtro e Busca -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text" style="background: var(--bg-primary); border-color: var(--cor-secondary); color: var(--cor-text);">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="busca-tabela" 
+                    placeholder="Buscar aluno..."
+                >
+            </div>
+        </div>
+        
+        <div class="col-md-6 text-end">
+            <a href="{% url 'historico_notas' %}" class="btn btn-cyber btn-cyber-secondary me-2">
+                <i class="fas fa-history me-2"></i>Ver Histórico
+            </a>
+            <a href="{% url 'gerenciar_presencas' %}" class="btn btn-cyber btn-cyber-accent me-2">
+                <i class="fas fa-user-check me-2"></i>Presenças
+            </a>
+            <a href="{% url 'gerenciar_notas' %}" class="btn btn-cyber btn-cyber-primary">
+                <i class="fas fa-plus me-2"></i>Lançar Notas
+            </a>
+        </div>
+    </div>
+    
+    <!-- Tabela de Ranking -->
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-medal me-2"></i>
+                    RANKING DE ALUNOS
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark cyber-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="10%">
+                                        <i class="fas fa-trophy me-2"></i>
+                                        Colocação
+                                    </th>
+                                    <th width="60%">
+                                        <i class="fas fa-user me-2"></i>
+                                        Nome do Aluno
+                                    </th>
+                                    <th width="15%">
+                                        <i class="fas fa-star me-2"></i>
+                                        Nota Média
+                                    </th>
+                                    <th width="15%">
+                                        <i class="fas fa-tasks me-2"></i>
+                                        Atividades
+                                    </th>
+                                    <th width="12%">
+                                        <i class="fas fa-trophy me-2"></i>
+                                        Total
+                                    </th>
+                                    <th width="9%">
+                                        <i class="fas fa-cogs me-2"></i>
+                                        Ações
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in ranking %}
+                                <tr class="{% if item.posicao <= 3 %}table-warning{% endif %}">
+                                    <td class="text-center">
+                                        {% if item.posicao == 1 %}
+                                            <span class="ranking-badge ranking-1">
+                                                <i class="fas fa-crown me-2"></i>1º
+                                            </span>
+                                        {% elif item.posicao == 2 %}
+                                            <span class="ranking-badge ranking-2">
+                                                <i class="fas fa-medal me-2"></i>2º
+                                            </span>
+                                        {% elif item.posicao == 3 %}
+                                            <span class="ranking-badge ranking-3">
+                                                <i class="fas fa-award me-2"></i>3º
+                                            </span>
+                                        {% else %}
+                                            <span class="ranking-badge ranking-outros">
+                                                {{ item.posicao }}º
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        <strong>{{ item.aluno.nome }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-id-card me-1"></i>
+                                            {{ item.aluno.matricula }}
+                                        </small>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <span class="fw-bold fs-5" 
+                                              style="{% if item.nota_media >= 8 %}color: var(--cor-success){% elif item.nota_media >= 6 %}color: var(--cor-accent){% else %}color: var(--cor-danger){% endif %}; text-shadow: 0 0 10px currentColor;">
+                                            {{ item.nota_media|floatformat:1 }}
+                                        </span>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <span class="badge" 
+                                              style="background: rgba(0, 245, 255, 0.2); color: var(--cor-secondary); border: 1px solid var(--cor-secondary);">
+                                            {{ item.total_atividades }}
+                                        </span>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <span class="fw-bold fs-4" 
+                                              style="color: var(--cor-accent); text-shadow: 0 0 15px var(--cor-accent);">
+                                            {{ item.pontuacao_total|floatformat:1 }}
+                                        </span>
+                                        <br>
+                                        <small class="text-muted">pts</small>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <a href="{% url 'editar_aluno' item.aluno.pk %}" 
+                                           class="btn btn-sm btn-outline-warning me-1"
+                                           title="Editar aluno"
+                                           data-bs-toggle="tooltip">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'deletar_aluno' item.aluno.pk %}" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           title="Excluir aluno"
+                                           data-bs-toggle="tooltip"
+                                           onclick="return confirm('Tem certeza que deseja excluir este aluno? Todas as notas serão perdidas!')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-users fa-3x mb-3"></i>
+                                            <p>Nenhum aluno cadastrado ainda.</p>
+                                            <a href="{% url 'criar_aluno' %}" class="btn btn-cyber btn-cyber-primary">
+                                                <i class="fas fa-plus me-2"></i>Cadastrar Primeiro Aluno
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-bolt me-2"></i>
+                    AÇÕES RÁPIDAS
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'criar_aluno' %}" class="btn btn-cyber btn-cyber-primary w-100">
+                                <i class="fas fa-user-plus me-2"></i>
+                                Novo Aluno
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'criar_atividade' %}" class="btn btn-cyber btn-cyber-secondary w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                Nova Atividade
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{% url 'gerenciar_notas' %}" class="btn btn-cyber btn-cyber-primary w-100">
+                                <i class="fas fa-star me-2"></i>
+                                Lançar Notas
+                            </a>
+                        </div>
+                        
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="/admin/" class="btn btn-cyber btn-cyber-danger w-100" target="_blank">
+                                <i class="fas fa-shield-alt me-2"></i>
+                                Admin Panel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Contador de tempo específico para o dashboard
+    console.log('🎯 Dashboard carregado com sucesso!');
+    
+    // Log das estatísticas
+    console.log('📊 Estatísticas:', {
+        alunos: {{ total_alunos }},
+        atividades: {{ total_atividades }},
+        media: {{ media_geral }}
+    });
+});
+</script>
+{% endblock %}

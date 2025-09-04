@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Alunos - Sistema de Gamificação{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold" style="color: var(--cor-primary); text-shadow: 0 0 15px var(--cor-primary);">
+                        <i class="fas fa-users me-3"></i>GERENCIAR ALUNOS
+                    </h1>
+                    <p class="lead text-muted">Visualize e gerencie todos os alunos do sistema</p>
+                </div>
+                <div>
+                    <a href="{% url 'dashboard' %}" class="btn btn-cyber btn-cyber-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar
+                    </a>
+                    <a href="{% url 'criar_aluno' %}" class="btn btn-cyber btn-cyber-primary">
+                        <i class="fas fa-user-plus me-2"></i>Novo Aluno
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-list me-2"></i>LISTA DE ALUNOS
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark cyber-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Matrícula</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Data Criação</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for aluno in alunos %}
+                                <tr>
+                                    <td><strong>{{ aluno.nome }}</strong></td>
+                                    <td>{{ aluno.matricula }}</td>
+                                    <td>{{ aluno.email|default:"Não informado" }}</td>
+                                    <td>
+                                        {% if aluno.ativo %}
+                                        <span class="badge bg-success">Ativo</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Inativo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ aluno.data_criacao|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'editar_aluno' aluno.pk %}" class="btn btn-sm btn-outline-warning me-1">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'deletar_aluno' aluno.pk %}" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-users fa-3x mb-3"></i>
+                                            <p>Nenhum aluno cadastrado ainda.</p>
+                                            <a href="{% url 'criar_aluno' %}" class="btn btn-cyber btn-cyber-primary">
+                                                <i class="fas fa-plus me-2"></i>Cadastrar Primeiro Aluno
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

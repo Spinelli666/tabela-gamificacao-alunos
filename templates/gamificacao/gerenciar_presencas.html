@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Presenças - Sistema de Gamificação{% endblock %}
+
+{% block content %}
+<div class="container main-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-5 fw-bold" style="color: var(--cor-secondary); text-shadow: 0 0 15px var(--cor-secondary);">
+                    <i class="fas fa-user-check me-3"></i>
+                    GERENCIAR PRESENÇAS
+                </h1>
+                <p class="lead text-muted">
+                    Controle de presença dos alunos - <span style="color: var(--cor-accent);">+1 ponto por presença / -0.5 ponto por falta</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h5 class="mb-0" style="color: var(--cor-accent);">
+                        <i class="fas fa-filter me-2"></i>Filtros de Data
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label for="data_inicio" class="form-label text-light">Data Início</label>
+                            <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="data_fim" class="form-label text-light">Data Fim</label>
+                            <input type="date" class="form-control" id="data_fim" name="data_fim" value="{{ data_fim }}">
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-cyber btn-cyber-primary w-100">
+                                <i class="fas fa-search me-2"></i>Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="cyber-stats-card text-center">
+                <div class="stats-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-number">{{ total_presencas }}</div>
+                <div class="stats-label">Total de Registros</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="cyber-stats-card text-center">
+                <div class="stats-icon" style="color: var(--cor-success);">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stats-number" style="color: var(--cor-success);">{{ total_presentes }}</div>
+                <div class="stats-label">Presenças</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="cyber-stats-card text-center">
+                <div class="stats-icon" style="color: var(--cor-danger);">
+                    <i class="fas fa-user-times"></i>
+                </div>
+                <div class="stats-number" style="color: var(--cor-danger);">{{ total_faltas }}</div>
+                <div class="stats-label">Faltas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex flex-wrap gap-2">
+            <a href="{% url 'lancar_presenca' %}" class="btn btn-cyber btn-cyber-primary">
+                <i class="fas fa-plus me-2"></i>Lançar Presença Individual
+            </a>
+            <a href="{% url 'lancar_presenca_multipla' %}" class="btn btn-cyber btn-cyber-accent">
+                <i class="fas fa-users me-2"></i>Lançar Presença Múltipla
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-cyber btn-cyber-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Lista de Presenças -->
+    <div class="row">
+        <div class="col-12">
+            {% if presencas %}
+            <div class="cyber-card">
+                <div class="card-header">
+                    <h5 class="mb-0" style="color: var(--cor-accent);">
+                        <i class="fas fa-list me-2"></i>Presenças Registradas
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped cyber-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Aluno</th>
+                                    <th>Status</th>
+                                    <th>Pontos</th>
+                                    <th>Lançada por</th>
+                                    <th>Data Lançamento</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for presenca in presencas %}
+                                <tr>
+                                    <td>
+                                        <span style="color: var(--cor-accent); font-weight: bold;">
+                                            {{ presenca.data_presenca|date:"d/m/Y" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="student-avatar me-2">
+                                                {{ presenca.aluno.nome|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold">{{ presenca.aluno.nome }}</div>
+                                                <small class="text-muted">{{ presenca.aluno.matricula }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if presenca.presente %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Presente
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>Faltou
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="points-display">
+                                            {% if presenca.presente %}
+                                            <i class="fas fa-plus text-success"></i> 1
+                                            {% else %}
+                                            <i class="fas fa-minus text-danger"></i> 0.5
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if presenca.lancada_por %}
+                                        <small class="text-muted">{{ presenca.lancada_por.username }}</small>
+                                        {% else %}
+                                        <small class="text-muted">Sistema</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ presenca.data_lancamento|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'editar_presenca' presenca.pk %}" 
+                                               class="btn btn-cyber btn-cyber-warning btn-sm"
+                                               title="Editar Presença">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'deletar_presenca' presenca.pk %}" 
+                                               class="btn btn-cyber btn-cyber-danger btn-sm"
+                                               title="Excluir Presença">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% if presenca.observacoes %}
+                                <tr class="bg-dark">
+                                    <td colspan="7">
+                                        <small class="text-muted">
+                                            <i class="fas fa-comment me-1"></i>
+                                            <strong>Obs:</strong> {{ presenca.observacoes }}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="cyber-card text-center py-5">
+                <div class="mb-3" style="color: var(--cor-accent); font-size: 3rem;">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <h4 style="color: var(--cor-secondary);">Nenhuma presença registrada</h4>
+                <p class="text-muted mb-4">
+                    Não há presenças registradas no período selecionado.
+                </p>
+                <a href="{% url 'lancar_presenca' %}" class="btn btn-cyber btn-cyber-primary me-2">
+                    <i class="fas fa-plus me-2"></i>Lançar Primeira Presença
+                </a>
+                <a href="{% url 'lancar_presenca_multipla' %}" class="btn btn-cyber btn-cyber-accent">
+                    <i class="fas fa-users me-2"></i>Lançar Presença Múltipla
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.student-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cor-primary), var(--cor-secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.points-display {
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-shadow: 0 0 5px currentColor;
+}
+
+.cyber-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: translateX(5px);
+    transition: all 0.3s ease;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Grupos{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="cyber-title">
+                        <i class="fas fa-users me-3"></i>GERENCIAR GRUPOS
+                    </h1>
+                    <p class="text-muted">
+                        Organize os alunos em grupos e acompanhe o ranking interno - <span style="color: var(--cor-accent);">Sistema de equipes colaborativo</span>
+                    </p>
+                </div>
+                
+                <div>
+                    <a href="{% url 'criar_grupo' %}" class="btn btn-cyber btn-cyber-primary">
+                        <i class="fas fa-plus me-2"></i>Criar Grupo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if grupos_info %}
+        <div class="row">
+            {% for grupo_info in grupos_info %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="cyber-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-users me-2"></i>
+                            {{ grupo_info.grupo.nome|upper }}
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'adicionar_membros' grupo_info.grupo.id %}">
+                                        <i class="fas fa-user-plus me-2"></i>Adicionar Membros
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'editar_grupo' grupo_info.grupo.id %}">
+                                        <i class="fas fa-edit me-2"></i>Editar Grupo
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'deletar_grupo' grupo_info.grupo.id %}">
+                                        <i class="fas fa-trash me-2"></i>Deletar Grupo
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <!-- Informações do Grupo -->
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <div class="text-center">
+                                    <span class="stats-number" style="font-size: 1.5rem;">{{ grupo_info.total_membros }}</span>
+                                    <div class="stats-label" style="font-size: 0.8rem;">
+                                        <i class="fas fa-user me-1"></i>Membros
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center">
+                                    <span class="stats-number" style="font-size: 1.5rem;">{{ grupo_info.media_grupo }}</span>
+                                    <div class="stats-label" style="font-size: 0.8rem;">
+                                        <i class="fas fa-chart-line me-1"></i>Média
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center">
+                                    {% if grupo_info.grupo.lider %}
+                                        <i class="fas fa-crown" style="color: #ffd700; font-size: 1.5rem;"></i>
+                                        <div class="stats-label" style="font-size: 0.8rem;">
+                                            Líder: {{ grupo_info.grupo.lider.nome|truncatechars:12 }}
+                                        </div>
+                                    {% else %}
+                                        <i class="fas fa-user-slash" style="color: #6c757d; font-size: 1.5rem;"></i>
+                                        <div class="stats-label" style="font-size: 0.8rem;">
+                                            Sem líder
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Descrição do Grupo -->
+                        {% if grupo_info.grupo.descricao %}
+                        <div class="mb-3">
+                            <small class="text-muted">{{ grupo_info.grupo.descricao }}</small>
+                        </div>
+                        {% endif %}
+
+                        <!-- Ranking do Grupo -->
+                        {% if grupo_info.ranking %}
+                        <div class="ranking-grupo">
+                            <h6 class="mb-2" style="color: var(--cor-accent);">
+                                <i class="fas fa-trophy me-2"></i>Ranking Interno
+                            </h6>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-dark table-sm cyber-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th width="20%">Pos.</th>
+                                            <th width="60%">Aluno</th>
+                                            <th width="20%" class="text-end">Pontos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in grupo_info.ranking %}
+                                        <tr>
+                                            <td>
+                                                <span class="fw-bold" 
+                                                      style="color: {% if item.posicao == 1 %}#FFD700{% elif item.posicao == 2 %}#C0C0C0{% elif item.posicao == 3 %}#CD7F32{% else %}var(--cor-text){% endif %};">
+                                                    {{ item.posicao }}º
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="student-avatar me-2">
+                                                        {{ item.aluno.nome|first|upper }}
+                                                    </div>
+                                                    <div>
+                                                        <div style="font-size: 0.9rem;">
+                                                            {{ item.aluno.nome|truncatechars:20 }}
+                                                            {% if grupo_info.grupo.lider == item.aluno %}
+                                                                <i class="fas fa-crown ms-1" style="color: #ffd700; font-size: 0.8rem;" title="Líder do Grupo"></i>
+                                                            {% endif %}
+                                                        </div>
+                                                        <small class="text-muted">{{ item.aluno.matricula }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-end">
+                                                <span class="fw-bold" style="color: var(--cor-accent);">
+                                                    {{ item.pontuacao|floatformat:1 }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Botão para remover membros -->
+                            <div class="mt-2 text-end">
+                                <div class="dropdown dropup">
+                                    <button class="btn btn-sm btn-outline-warning dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-user-minus me-1"></i>Remover Membro
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-dark">
+                                        {% for item in grupo_info.ranking %}
+                                        <li>
+                                            <a class="dropdown-item" 
+                                               href="{% url 'remover_membro' grupo_info.grupo.id item.aluno.id %}"
+                                               onclick="return confirm('Tem certeza que deseja remover {{ item.aluno.nome }} do grupo?')">
+                                                <i class="fas fa-times me-2"></i>{{ item.aluno.nome|truncatechars:25 }}
+                                            </a>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-user-plus fa-2x mb-2"></i>
+                            <p>Nenhum membro adicionado ainda.</p>
+                            <a href="{% url 'adicionar_membros' grupo_info.grupo.id %}" class="btn btn-sm btn-cyber btn-cyber-accent">
+                                Adicionar Membros
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="cyber-card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-users fa-4x mb-4" style="color: var(--cor-accent); opacity: 0.5;"></i>
+                        <h4 class="mb-3">Nenhum grupo criado ainda</h4>
+                        <p class="text-muted mb-4">
+                            Crie grupos para organizar seus alunos e acompanhar o desempenho por equipes.
+                        </p>
+                        <a href="{% url 'criar_grupo' %}" class="btn btn-cyber btn-cyber-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i>Criar Primeiro Grupo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.student-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--cor-primary), var(--cor-secondary));
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ranking-grupo .table {
+    font-size: 0.85rem;
+}
+
+.cyber-card {
+    margin-bottom: 1rem;
+}
+
+.stats-number {
+    color: var(--cor-accent);
+    font-weight: 900;
+    text-shadow: 0 0 10px var(--cor-accent);
+}
+
+.stats-label {
+    color: var(--cor-text);
+    font-size: 0.85rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Histórico de Notas - Sistema de Gamificação{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-container">
+    <!-- Header do Histórico -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold" style="color: var(--cor-secondary); text-shadow: 0 0 15px var(--cor-secondary);">
+                        <i class="fas fa-history me-3"></i>
+                        HISTÓRICO DE NOTAS
+                    </h1>
+                    <p class="lead text-muted">
+                        Visualize o desempenho dos alunos por atividade
+                    </p>
+                </div>
+                
+                <div>
+                    <a href="{% url 'dashboard' %}" class="btn btn-cyber btn-cyber-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
+                    </a>
+                    <a href="{% url 'gerenciar_notas' %}" class="btn btn-cyber btn-cyber-primary">
+                        <i class="fas fa-plus me-2"></i>Lançar Novas Notas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Histórico por Atividade -->
+    {% for item in historico_data %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="cyber-card historico-item">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0" style="color: var(--cor-accent); text-shadow: 0 0 10px var(--cor-accent);">
+                            <i class="fas fa-tasks me-2"></i>
+                            {{ item.atividade.nome }}
+                        </h3>
+                        {% if item.atividade.data_entrega %}
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>
+                            Entrega: {{ item.atividade.data_entrega|date:"d/m/Y H:i" }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-end">
+                        <div class="stats-mini">
+                            <span class="badge bg-primary me-2">
+                                <i class="fas fa-users me-1"></i>
+                                {{ item.total_alunos }} alunos
+                            </span>
+                            <span class="badge" style="background: rgba(255, 255, 0, 0.2); color: var(--cor-accent); border: 1px solid var(--cor-accent);">
+                                <i class="fas fa-chart-line me-1"></i>
+                                Média: {{ item.media|floatformat:1 }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    {% if item.atividade.descricao %}
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <strong>Descrição:</strong> {{ item.atividade.descricao }}
+                        </small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if item.notas %}
+                    <div class="table-responsive">
+                        <table class="table table-dark cyber-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="10%">
+                                        <i class="fas fa-trophy me-1"></i>Pos.
+                                    </th>
+                                    <th width="60%">
+                                        <i class="fas fa-user me-1"></i>Aluno
+                                    </th>
+                                    <th width="15%">
+                                        <i class="fas fa-star me-1"></i>Nota
+                                    </th>
+                                    <th width="15%">
+                                        <i class="fas fa-clock me-1"></i>Lançamento
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for nota in item.notas %}
+                                <tr>
+                                    <td class="text-center">
+                                        <span class="fw-bold text-primary">{{ forloop.counter }}º</span>
+                                    </td>
+                                    
+                                    <td>
+                                        <strong>{{ nota.aluno.nome }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-id-card me-1"></i>{{ nota.aluno.matricula }}
+                                        </small>
+                                        {% if nota.observacoes %}
+                                        <br>
+                                        <small class="text-info">
+                                            <i class="fas fa-comment me-1"></i>{{ nota.observacoes|truncatechars:50 }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <span class="fw-bold fs-5" 
+                                              style="{% if nota.valor >= 8 %}color: var(--cor-success){% elif nota.valor >= 6 %}color: var(--cor-accent){% else %}color: var(--cor-danger){% endif %}; text-shadow: 0 0 10px currentColor;">
+                                            {{ nota.valor|floatformat:1 }}
+                                        </span>
+                                        {% if nota.valor == 10 %}
+                                        <i class="fas fa-star text-warning ms-1" title="Nota máxima!" data-bs-toggle="tooltip"></i>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <small class="text-muted">
+                                            {{ nota.data_lancamento|date:"d/m/Y" }}
+                                            <br>
+                                            {% if nota.lancada_por %}
+                                            <i class="fas fa-user-tie me-1"></i>{{ nota.lancada_por.first_name|default:nota.lancada_por.username }}
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <div class="text-muted">
+                            <i class="fas fa-inbox fa-2x mb-3"></i>
+                            <p>Nenhuma nota lançada para esta atividade ainda.</p>
+                            <a href="{% url 'gerenciar_notas_atividade' item.atividade.id %}" class="btn btn-cyber btn-cyber-primary btn-sm">
+                                <i class="fas fa-plus me-2"></i>Lançar Notas
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Actions -->
+                <div class="card-footer d-flex justify-content-between">
+                    <div>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Criada em: {{ item.atividade.data_criacao|date:"d/m/Y H:i" }}
+                        </small>
+                    </div>
+                    
+                    <div>
+                        <a href="{% url 'gerenciar_notas_atividade' item.atividade.id %}" 
+                           class="btn btn-sm btn-outline-primary me-1"
+                           title="Gerenciar notas desta atividade"
+                           data-bs-toggle="tooltip">
+                            <i class="fas fa-edit me-1"></i>Gerenciar
+                        </a>
+                        <a href="{% url 'editar_atividade' item.atividade.id %}" 
+                           class="btn btn-sm btn-outline-warning"
+                           title="Editar atividade"
+                           data-bs-toggle="tooltip">
+                            <i class="fas fa-cog me-1"></i>Editar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <!-- Nenhuma atividade encontrada -->
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-tasks fa-4x mb-4" style="opacity: 0.5;"></i>
+                    <h3>Nenhuma atividade encontrada</h3>
+                    <p class="lead mb-4">
+                        Você precisa criar algumas atividades primeiro para ver o histórico de notas.
+                    </p>
+                    <a href="{% url 'criar_atividade' %}" class="btn btn-cyber btn-cyber-primary me-2">
+                        <i class="fas fa-plus me-2"></i>Criar Primeira Atividade
+                    </a>
+                    <a href="{% url 'gerenciar_atividades' %}" class="btn btn-cyber btn-cyber-secondary">
+                        <i class="fas fa-list me-2"></i>Ver Atividades
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Estatísticas do Histórico -->
+    {% if historico_data %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    ESTATÍSTICAS GERAIS
+                </div>
+                
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stats-mini-card">
+                                <div class="stats-number">{{ historico_data|length }}</div>
+                                <div class="stats-label">Atividades</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="stats-mini-card">
+                                {% with total_notas=historico_data|length %}
+                                <div class="stats-number">
+                                    {% for item in historico_data %}{{ item.notas|length }}{% if not forloop.last %} + {% endif %}{% endfor %}
+                                </div>
+                                <div class="stats-label">Notas Lançadas</div>
+                                {% endwith %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="stats-mini-card">
+                                <div class="stats-number">
+                                    {% for item in historico_data %}
+                                    {% if item.media >= 7 %}1{% else %}0{% endif %}
+                                    {% endfor %}
+                                </div>
+                                <div class="stats-label">Atividades > 7.0</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="stats-mini-card">
+                                <div class="stats-number">
+                                    {{ historico_data.0.atividade.data_criacao|date:"m/Y" }}
+                                </div>
+                                <div class="stats-label">Período</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.historico-item {
+    transition: all 0.3s ease;
+}
+
+.historico-item:hover {
+    transform: translateX(5px);
+    border-color: var(--cor-primary);
+    box-shadow: 0 0 25px var(--cor-primary);
+}
+
+.stats-mini-card {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    border: 1px solid var(--cor-secondary);
+    margin-bottom: 15px;
+}
+
+.stats-mini-card .stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--cor-accent);
+    text-shadow: 0 0 15px var(--cor-accent);
+}
+
+.stats-mini-card .stats-label {
+    color: var(--cor-text);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📊 Histórico de notas carregado!');
+    
+    // Log das atividades carregadas
+    const totalAtividades = {{ historico_data|length }};
+    console.log(`🎯 ${totalAtividades} atividades no histórico`);
+});
+</script>
+{% endblock %}

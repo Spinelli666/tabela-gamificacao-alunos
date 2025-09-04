@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Selecionar Atividade - Sistema de Gamificação{% endblock %}
+
+{% block content %}
+<div class="container main-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center">
+                <h1 class="display-5 fw-bold" style="color: var(--cor-secondary); text-shadow: 0 0 15px var(--cor-secondary);">
+                    <i class="fas fa-tasks me-3"></i>
+                    SELECIONAR ATIVIDADE
+                </h1>
+                <p class="lead text-muted">
+                    Escolha uma atividade para gerenciar as notas
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        {% for atividade in atividades %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="cyber-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0" style="color: var(--cor-accent);">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        {{ atividade.nome }}
+                    </h5>
+                    {% if atividade.ativa %}
+                    <span class="badge bg-success">Ativa</span>
+                    {% else %}
+                    <span class="badge bg-danger">Inativa</span>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    {% if atividade.descricao %}
+                    <p class="text-muted small">{{ atividade.descricao|truncatechars:100 }}</p>
+                    {% endif %}
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="stats-mini-card p-2">
+                                <div class="stats-number" style="font-size: 1.5rem;">
+                                    {{ atividade.valor_maximo|floatformat:1 }}
+                                </div>
+                                <div class="stats-label" style="font-size: 0.7rem;">Valor Máx.</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stats-mini-card p-2">
+                                <div class="stats-number" style="font-size: 1.5rem;">
+                                    {{ atividade.media_turma|floatformat:1 }}
+                                </div>
+                                <div class="stats-label" style="font-size: 0.7rem;">Média</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stats-mini-card p-2">
+                                <div class="stats-number" style="font-size: 1.5rem;">
+                                    {{ atividade.nota_set.count }}
+                                </div>
+                                <div class="stats-label" style="font-size: 0.7rem;">Notas</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if atividade.data_entrega %}
+                    <p class="small text-info mb-3">
+                        <i class="fas fa-calendar me-1"></i>
+                        Entrega: {{ atividade.data_entrega|date:"d/m/Y H:i" }}
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <div class="card-footer">
+                    <div class="d-grid">
+                        <a href="{% url 'gerenciar_notas_atividade' atividade.id %}" 
+                           class="btn btn-cyber btn-cyber-primary">
+                            <i class="fas fa-star me-2"></i>
+                            Gerenciar Notas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="cyber-card text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-tasks fa-4x mb-4" style="opacity: 0.3;"></i>
+                    <h3>Nenhuma atividade encontrada</h3>
+                    <p class="lead mb-4">
+                        Você precisa criar algumas atividades primeiro para poder lançar notas.
+                    </p>
+                    <a href="{% url 'criar_atividade' %}" class="btn btn-cyber btn-cyber-primary me-2">
+                        <i class="fas fa-plus me-2"></i>Criar Primeira Atividade
+                    </a>
+                    <a href="{% url 'gerenciar_atividades' %}" class="btn btn-cyber btn-cyber-secondary">
+                        <i class="fas fa-list me-2"></i>Ver Atividades
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a href="{% url 'dashboard' %}" class="btn btn-cyber btn-cyber-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-mini-card {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid var(--cor-secondary);
+}
+
+.stats-mini-card .stats-number {
+    color: var(--cor-accent);
+    text-shadow: 0 0 10px var(--cor-accent);
+    font-weight: bold;
+}
+
+.stats-mini-card .stats-label {
+    color: var(--cor-text);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+</style>
+{% endblock %}

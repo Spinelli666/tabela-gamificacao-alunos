@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Notas - {{ atividade.nome }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold" style="color: var(--cor-secondary); text-shadow: 0 0 15px var(--cor-secondary);">
+                        <i class="fas fa-star me-3"></i>
+                        GERENCIAR NOTAS
+                    </h1>
+                    <h3 class="text-muted">{{ atividade.nome }}</h3>
+                    <p class="lead">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Valor máximo: {{ atividade.valor_maximo|floatformat:1 }} | 
+                        Média atual: {{ atividade.media_turma|floatformat:1 }}
+                    </p>
+                </div>
+                
+                <div>
+                    <a href="{% url 'gerenciar_notas' %}" class="btn btn-cyber btn-cyber-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar
+                    </a>
+                    {% if alunos_sem_nota %}
+                    <a href="{% url 'lancar_nota' atividade.id %}" class="btn btn-cyber btn-cyber-primary">
+                        <i class="fas fa-plus me-2"></i>Lançar Nova Nota
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if atividade.descricao %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Descrição da Atividade:</h6>
+                    <p>{{ atividade.descricao }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Notas Existentes -->
+    {% if notas %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-list me-2"></i>
+                    NOTAS LANÇADAS ({{ notas.count }})
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark cyber-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th width="40%">Aluno</th>
+                                    <th width="15%">Nota</th>
+                                    <th width="20%">Data Lançamento</th>
+                                    <th width="20%">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for nota in notas %}
+                                <tr>
+                                    <td class="text-center">{{ forloop.counter }}</td>
+                                    
+                                    <td>
+                                        <strong>{{ nota.aluno.nome }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-id-card me-1"></i>{{ nota.aluno.matricula }}
+                                        </small>
+                                        {% if nota.observacoes %}
+                                        <br>
+                                        <small class="text-info">
+                                            <i class="fas fa-comment me-1"></i>{{ nota.observacoes|truncatechars:40 }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <span class="fw-bold fs-4" 
+                                              style="{% if nota.valor >= 8 %}color: var(--cor-success){% elif nota.valor >= 6 %}color: var(--cor-accent){% else %}color: var(--cor-danger){% endif %}; text-shadow: 0 0 10px currentColor;">
+                                            {{ nota.valor|floatformat:1 }}
+                                        </span>
+                                        {% if nota.valor == atividade.valor_maximo %}
+                                        <br>
+                                        <small class="text-warning">
+                                            <i class="fas fa-star"></i> Nota máxima!
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        <small>
+                                            {{ nota.data_lancamento|date:"d/m/Y H:i" }}
+                                            {% if nota.lancada_por %}
+                                            <br>
+                                            <i class="fas fa-user-tie me-1"></i>{{ nota.lancada_por.first_name|default:nota.lancada_por.username }}
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    
+                                    <td>
+                                        <a href="{% url 'editar_nota' atividade.id nota.aluno.id %}" 
+                                           class="btn btn-sm btn-outline-warning me-1"
+                                           title="Editar nota"
+                                           data-bs-toggle="tooltip">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                title="Excluir nota"
+                                                data-bs-toggle="tooltip"
+                                                onclick="confirmarExclusaoNota({{ nota.id }}, '{{ nota.aluno.nome }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Alunos sem Nota -->
+    {% if alunos_sem_nota %}
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-user-plus me-2"></i>
+                    ALUNOS SEM NOTA ({{ alunos_sem_nota.count }})
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark cyber-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th width="60%">Aluno</th>
+                                    <th width="35%">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for aluno in alunos_sem_nota %}
+                                <tr>
+                                    <td class="text-center">{{ forloop.counter }}</td>
+                                    
+                                    <td>
+                                        <strong>{{ aluno.nome }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-id-card me-1"></i>{{ aluno.matricula }}
+                                        </small>
+                                    </td>
+                                    
+                                    <td>
+                                        <a href="{% url 'lancar_nota_aluno' atividade.id aluno.id %}" 
+                                           class="btn btn-sm btn-cyber btn-cyber-primary">
+                                            <i class="fas fa-plus me-2"></i>Lançar Nota
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Caso não há alunos -->
+    {% if not notas and not alunos_sem_nota %}
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-users fa-4x mb-4" style="opacity: 0.3;"></i>
+                    <h3>Nenhum aluno encontrado</h3>
+                    <p class="lead mb-4">
+                        Você precisa cadastrar alguns alunos primeiro para poder lançar notas.
+                    </p>
+                    <a href="{% url 'criar_aluno' %}" class="btn btn-cyber btn-cyber-primary">
+                        <i class="fas fa-user-plus me-2"></i>Cadastrar Alunos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal de confirmação para exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--bg-primary); border: 2px solid var(--cor-danger);">
+            <div class="modal-header" style="border-bottom: 1px solid var(--cor-danger);">
+                <h5 class="modal-title" style="color: var(--cor-danger);">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="color: var(--cor-text);">
+                <p>Tem certeza que deseja excluir a nota de <strong id="nomeAluno"></strong>?</p>
+                <p class="text-warning"><i class="fas fa-warning me-1"></i>Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid var(--cor-danger);">
+                <button type="button" class="btn btn-cyber btn-cyber-secondary" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-cyber btn-cyber-danger">
+                        <i class="fas fa-trash me-2"></i>Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarExclusaoNota(notaId, nomeAluno) {
+    document.getElementById('nomeAluno').textContent = nomeAluno;
+    document.getElementById('deleteForm').action = `{% url 'deletar_nota' 0 %}`.replace('0', notaId);
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📝 Gerenciamento de notas carregado!');
+    
+    // Configurar tooltips
+    const tooltips = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltips.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

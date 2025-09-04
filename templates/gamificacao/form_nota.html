@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Editar Nota - {{ aluno.nome }}
+    {% else %}
+        Lançar Nota - {{ atividade.nome }}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold" style="color: var(--cor-secondary); text-shadow: 0 0 15px var(--cor-secondary);">
+                        <i class="fas fa-star me-3"></i>
+                        {% if form.instance.pk %}
+                            EDITAR NOTA
+                        {% else %}
+                            LANÇAR NOTA
+                        {% endif %}
+                    </h1>
+                    <h3 class="text-muted">{{ atividade.nome }}</h3>
+                    {% if aluno %}
+                        <p class="lead">
+                            <i class="fas fa-user-graduate me-1"></i>
+                            {{ aluno.nome }} - {{ aluno.matricula }}
+                        </p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <a href="{% url 'gerenciar_notas_atividade' atividade.id %}" class="btn btn-cyber btn-cyber-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-edit me-2"></i>
+                    INFORMAÇÕES DA NOTA
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" id="formNota">
+                        {% csrf_token %}
+                        
+                        <!-- Informações da atividade -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="p-3 rounded" style="background: rgba(var(--cor-accent-rgb), 0.1); border: 1px solid var(--cor-accent);">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6 class="text-muted mb-1">Atividade:</h6>
+                                            <p class="mb-2" style="color: var(--cor-accent);">{{ atividade.nome }}</p>
+                                            {% if atividade.descricao %}
+                                            <small class="text-muted">{{ atividade.descricao }}</small>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="text-muted mb-1">Valor máximo:</h6>
+                                            <p class="mb-1 fw-bold" style="color: var(--cor-success);">
+                                                {{ atividade.valor_maximo|floatformat:1 }} pontos
+                                            </p>
+                                            <small class="text-muted">Data: {{ atividade.data_criacao|date:"d/m/Y" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seleção do aluno (se necessário) -->
+                        {% if not aluno %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="{{ form.aluno.id_for_label }}" class="form-label text-muted">
+                                    <i class="fas fa-user-graduate me-2"></i>ALUNO *
+                                </label>
+                                {{ form.aluno }}
+                                {% if form.aluno.help_text %}
+                                    <div class="form-text">{{ form.aluno.help_text }}</div>
+                                {% endif %}
+                                {% if form.aluno.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.aluno.errors %}
+                                            <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                            <!-- Campo hidden para aluno -->
+                            <input type="hidden" name="aluno" value="{{ aluno.id }}">
+                        {% endif %}
+                        
+                        <!-- Valor da nota -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.valor.id_for_label }}" class="form-label text-muted">
+                                    <i class="fas fa-star me-2"></i>NOTA *
+                                </label>
+                                {{ form.valor }}
+                                <div class="form-text">
+                                    Entre 0 e {{ atividade.valor_maximo|floatformat:1 }} pontos
+                                </div>
+                                {% if form.valor.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.valor.errors %}
+                                            <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="p-3 mt-4 rounded text-center" style="background: rgba(var(--cor-success-rgb), 0.1); border: 1px solid var(--cor-success);">
+                                    <h6 class="text-muted mb-1">Visualização da nota</h6>
+                                    <div id="previewNota" class="fw-bold" style="font-size: 2em; color: var(--cor-success); text-shadow: 0 0 10px var(--cor-success);">
+                                        {% if form.instance.pk %}{{ form.instance.valor|floatformat:1 }}{% else %}0.0{% endif %}
+                                    </div>
+                                    <small id="previewPercentual" class="text-muted">
+                                        {% if form.instance.pk %}{{ form.instance.valor|floatformat:1 }}{% else %}0{% endif %} / {{ atividade.valor_maximo|floatformat:1 }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Observações -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="{{ form.observacoes.id_for_label }}" class="form-label text-muted">
+                                    <i class="fas fa-comment me-2"></i>OBSERVAÇÕES
+                                </label>
+                                {{ form.observacoes }}
+                                <div class="form-text">
+                                    Comentários adicionais sobre a nota (opcional)
+                                </div>
+                                {% if form.observacoes.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.observacoes.errors %}
+                                            <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Histórico (se editando) -->
+                        {% if form.instance.pk and historico %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="p-3 rounded" style="background: rgba(var(--cor-secondary-rgb), 0.1); border: 1px solid var(--cor-secondary);">
+                                    <h6 class="mb-3" style="color: var(--cor-secondary);">
+                                        <i class="fas fa-history me-2"></i>Histórico de Alterações
+                                    </h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-dark">
+                                            <thead>
+                                                <tr>
+                                                    <th>Data</th>
+                                                    <th>Nota Anterior</th>
+                                                    <th>Alterado por</th>
+                                                    <th>Motivo</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for item in historico %}
+                                                <tr>
+                                                    <td><small>{{ item.data_alteracao|date:"d/m/Y H:i" }}</small></td>
+                                                    <td class="fw-bold">{{ item.valor_anterior|floatformat:1 }}</td>
+                                                    <td><small>{{ item.usuario.first_name|default:item.usuario.username }}</small></td>
+                                                    <td><small>{{ item.motivo|default:"-" }}</small></td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Botões de ação -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{% url 'gerenciar_notas_atividade' atividade.id %}" class="btn btn-cyber btn-cyber-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    
+                                    <button type="submit" class="btn btn-cyber btn-cyber-primary">
+                                        <i class="fas fa-save me-2"></i>
+                                        {% if form.instance.pk %}Salvar Alterações{% else %}Lançar Nota{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📝 Formulário de nota carregado!');
+    
+    const valorInput = document.getElementById('id_valor');
+    const previewNota = document.getElementById('previewNota');
+    const previewPercentual = document.getElementById('previewPercentual');
+    const valorMaximo = {{ atividade.valor_maximo }};
+    
+    // Função para atualizar preview
+    function atualizarPreview() {
+        const valor = parseFloat(valorInput.value) || 0;
+        const percentual = (valor / valorMaximo * 100).toFixed(1);
+        
+        previewNota.textContent = valor.toFixed(1);
+        previewPercentual.textContent = `${valor.toFixed(1)} / ${valorMaximo.toFixed(1)} (${percentual}%)`;
+        
+        // Mudar cor baseado na nota
+        let cor = 'var(--cor-danger)';
+        if (valor >= 8) cor = 'var(--cor-success)';
+        else if (valor >= 6) cor = 'var(--cor-accent)';
+        
+        previewNota.style.color = cor;
+        previewNota.style.textShadow = `0 0 10px ${cor}`;
+    }
+    
+    // Event listeners
+    valorInput.addEventListener('input', atualizarPreview);
+    valorInput.addEventListener('blur', function() {
+        // Validação ao perder foco
+        const valor = parseFloat(this.value) || 0;
+        if (valor > valorMaximo) {
+            this.value = valorMaximo;
+            atualizarPreview();
+            
+            // Mostrar aviso
+            showToast('Atenção', `A nota não pode ser maior que ${valorMaximo}`, 'warning');
+        }
+    });
+    
+    // Atualizar preview inicial
+    atualizarPreview();
+    
+    // Validação do formulário
+    const form = document.getElementById('formNota');
+    form.addEventListener('submit', function(e) {
+        const valor = parseFloat(valorInput.value) || 0;
+        
+        if (valor < 0) {
+            e.preventDefault();
+            showToast('Erro', 'A nota não pode ser negativa', 'error');
+            return;
+        }
+        
+        if (valor > valorMaximo) {
+            e.preventDefault();
+            showToast('Erro', `A nota não pode ser maior que ${valorMaximo}`, 'error');
+            return;
+        }
+    });
+});
+
+// Função para mostrar toast (você pode implementar ou usar uma biblioteca)
+function showToast(title, message, type = 'info') {
+    // Implementação simples usando alert (você pode melhorar isso)
+    alert(`${title}: ${message}`);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}📊 Histórico Caça-Níquel - Sistema de Gamificação{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h1 class="cyberpunk-title">
+                <span class="neon-text">📊 HISTÓRICO DO CAÇA-NÍQUEL</span>
+            </h1>
+            <a href="{% url 'caca_niquel' %}" class="btn btn-primary btn-lg">
+                🎰 Voltar ao Caça-Níquel
+            </a>
+        </div>
+    </div>
+    
+    <!-- Estatísticas Gerais -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="cyberpunk-card text-center">
+                <h3 class="neon-text">{{ total_jogadas }}</h3>
+                <p class="mb-0">🎲 Total de Jogadas</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="cyberpunk-card text-center">
+                <h3 class="neon-text text-success">{{ premios_resgatados }}</h3>
+                <p class="mb-0">✅ Prêmios Resgatados</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="cyberpunk-card text-center">
+                <h3 class="neon-text text-warning">{{ premios_pendentes }}</h3>
+                <p class="mb-0">⏳ Prêmios Pendentes</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="cyberpunk-card text-center">
+                <h3 class="neon-text text-info">{{ premios_resgatados|add:premios_pendentes }}</h3>
+                <p class="mb-0">🏆 Total de Prêmios</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estatísticas por Recompensa -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="cyberpunk-card">
+                <h4 class="mb-3">📈 Distribuição de Recompensas</h4>
+                <div class="row">
+                    {% for stat in stats_recompensas %}
+                        <div class="col-md-2 text-center mb-3">
+                            <div class="recompensa-stat">
+                                <div class="stat-emoji">
+                                    {% if stat.recompensa == '10_reais' %}💰
+                                    {% elif stat.recompensa == '5_reais' %}💵
+                                    {% elif stat.recompensa == 'vale_trabalho' %}📝
+                                    {% elif stat.recompensa == 'doce' %}🍭
+                                    {% elif stat.recompensa == 'salgado' %}🥨
+                                    {% endif %}
+                                </div>
+                                <div class="stat-numero">{{ stat.quantidade }}</div>
+                                <div class="stat-label">
+                                    {% if stat.recompensa == '10_reais' %}R$ 10,00
+                                    {% elif stat.recompensa == '5_reais' %}R$ 5,00
+                                    {% elif stat.recompensa == 'vale_trabalho' %}Vale-trabalho
+                                    {% elif stat.recompensa == 'doce' %}Doce
+                                    {% elif stat.recompensa == 'salgado' %}Salgado
+                                    {% endif %}
+                                </div>
+                                <div class="stat-percentual">
+                                    {% widthratio stat.quantidade total_jogadas 100 %}%
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Histórico de Jogadas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="cyberpunk-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>🎯 Histórico de Jogadas</h4>
+                    <small class="text-muted">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </small>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>👤 Aluno</th>
+                                <th>🎁 Recompensa</th>
+                                <th>📅 Data da Jogada</th>
+                                <th>🔄 Status</th>
+                                <th>📅 Data Resgate</th>
+                                <th>👨‍💼 Resgatado Por</th>
+                                <th>⚙️ Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for jogada in page_obj %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ jogada.aluno.nome }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="recompensa-badge 
+                                            {% if jogada.recompensa == '10_reais' %}badge-dourado
+                                            {% elif jogada.recompensa == '5_reais' %}badge-prata
+                                            {% elif jogada.recompensa == 'vale_trabalho' %}badge-bronze
+                                            {% else %}badge-comum
+                                            {% endif %}">
+                                            {{ jogada.get_recompensa_display }}
+                                        </span>
+                                    </td>
+                                    <td>{{ jogada.data_jogada|date:"d/m/Y H:i:s" }}</td>
+                                    <td>
+                                        {% if jogada.resgatado %}
+                                            <span class="badge bg-success">✅ Resgatado</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">⏳ Pendente</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if jogada.data_resgate %}
+                                            {{ jogada.data_resgate|date:"d/m/Y H:i:s" }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if jogada.resgatado_por %}
+                                            {{ jogada.resgatado_por.get_full_name|default:jogada.resgatado_por.username }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not jogada.resgatado %}
+                                            <button class="btn btn-sm btn-success" 
+                                                    onclick="marcarResgatado({{ jogada.id }})">
+                                                ✅ Marcar como Resgatado
+                                            </button>
+                                        {% else %}
+                                            <small class="text-success">✅ Já resgatado</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <h5>🎲 Nenhuma jogada registrada ainda!</h5>
+                                        <p>Vá para o caça-níquel e comece a jogar!</p>
+                                        <a href="{% url 'caca_niquel' %}" class="btn btn-primary">
+                                            🎰 Ir para o Caça-Níquel
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Paginação -->
+                {% if page_obj.has_other_pages %}
+                    <nav aria-label="Navegação do histórico">
+                        <ul class="pagination justify-content-center mt-4">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">« Primeira</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹ Anterior</a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima ›</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última »</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.recompensa-stat {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.recompensa-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+}
+
+.stat-emoji {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.stat-numero {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #00d4ff;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #ffffff;
+    margin: 5px 0;
+}
+
+.stat-percentual {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.recompensa-badge {
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.badge-dourado {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #000;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.badge-prata {
+    background: linear-gradient(45deg, #c0c0c0, #e5e5e5);
+    color: #000;
+    box-shadow: 0 0 10px rgba(192, 192, 192, 0.5);
+}
+
+.badge-bronze {
+    background: linear-gradient(45deg, #cd7f32, #d4943a);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
+}
+
+.badge-comum {
+    background: linear-gradient(45deg, #28a745, #34ce57);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function marcarResgatado(jogadaId) {
+    if (confirm('Confirmar que esta recompensa foi resgatada?')) {
+        fetch(`/caca-niquel/marcar-resgatado/${jogadaId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                location.reload();
+            } else {
+                alert('Erro ao marcar como resgatado: ' + (data.erro || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro de conexão!');
+        });
+    }
+}
+</script>
+{% endblock %}

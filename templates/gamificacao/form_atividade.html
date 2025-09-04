@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold" style="color: var(--cor-secondary); text-shadow: 0 0 15px var(--cor-secondary);">
+                        <i class="fas fa-tasks me-3"></i>
+                        {{ titulo|upper }}
+                    </h1>
+                    <p class="lead text-muted">
+                        {% if atividade %}
+                            Editando atividade: {{ atividade.nome }}
+                        {% else %}
+                            Preencha os dados da nova atividade
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div>
+                    <a href="{% url 'gerenciar_atividades' %}" class="btn btn-cyber btn-cyber-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-edit me-2"></i>
+                    DADOS DA ATIVIDADE
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" id="formAtividade">
+                        {% csrf_token %}
+                        
+                        <!-- Nome da atividade -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="{{ form.nome.id_for_label }}" class="form-label text-muted">
+                                    <i class="fas fa-tag me-2"></i>NOME DA ATIVIDADE *
+                                </label>
+                                {{ form.nome }}
+                                {% if form.nome.help_text %}
+                                    <div class="form-text">{{ form.nome.help_text }}</div>
+                                {% endif %}
+                                {% if form.nome.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.nome.errors %}
+                                            <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Descrição -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <label for="{{ form.descricao.id_for_label }}" class="form-label text-muted">
+                                    <i class="fas fa-align-left me-2"></i>DESCRIÇÃO
+                                </label>
+                                {{ form.descricao }}
+                                {% if form.descricao.help_text %}
+                                    <div class="form-text">{{ form.descricao.help_text }}</div>
+                                {% endif %}
+                                {% if form.descricao.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.descricao.errors %}
+                                            <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Data de entrega e Valor máximo -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="{{ form.data_entrega.id_for_label }}" class="form-label text-muted">
+                                    <i class="fas fa-calendar me-2"></i>DATA DE ENTREGA
+                                </label>
+                                {{ form.data_entrega }}
+                                {% if form.data_entrega.help_text %}
+                                    <div class="form-text">{{ form.data_entrega.help_text }}</div>
+                                {% endif %}
+                                {% if form.data_entrega.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.data_entrega.errors %}
+                                            <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.valor_maximo.id_for_label }}" class="form-label text-muted">
+                                    <i class="fas fa-star me-2"></i>VALOR MÁXIMO *
+                                </label>
+                                {{ form.valor_maximo }}
+                                <div class="form-text">
+                                    Valor máximo que pode ser atribuído nesta atividade
+                                </div>
+                                {% if form.valor_maximo.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.valor_maximo.errors %}
+                                            <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Atividade ativa -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="form-check">
+                                    {{ form.ativa }}
+                                    <label class="form-check-label text-muted" for="{{ form.ativa.id_for_label }}">
+                                        <i class="fas fa-toggle-on me-2"></i>ATIVIDADE ATIVA
+                                    </label>
+                                    <div class="form-text">
+                                        Atividades inativas não aparecem no lançamento de notas
+                                    </div>
+                                    {% if form.ativa.errors %}
+                                        <div class="text-danger mt-1">
+                                            {% for error in form.ativa.errors %}
+                                                <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview da atividade -->
+                        {% if form.nome.value or form.descricao.value %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="p-3 rounded" style="background: rgba(var(--cor-accent-rgb), 0.1); border: 1px solid var(--cor-accent);">
+                                    <h6 class="mb-3" style="color: var(--cor-accent);">
+                                        <i class="fas fa-eye me-2"></i>Preview da Atividade
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h5 id="previewNome">{{ form.nome.value|default:"Nome da Atividade" }}</h5>
+                                            <p id="previewDescricao" class="text-muted">
+                                                {{ form.descricao.value|default:"Descrição da atividade..." }}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <div class="fw-bold" style="color: var(--cor-success);">
+                                                <i class="fas fa-star me-1"></i>
+                                                <span id="previewValor">{{ form.valor_maximo.value|default:"10.0" }}</span> pontos
+                                            </div>
+                                            <small class="text-muted" id="previewData">
+                                                {% if form.data_entrega.value %}
+                                                    <i class="fas fa-calendar me-1"></i>{{ form.data_entrega.value }}
+                                                {% else %}
+                                                    <i class="fas fa-calendar me-1"></i>Sem prazo definido
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Botões de ação -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{% url 'gerenciar_atividades' %}" class="btn btn-cyber btn-cyber-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    
+                                    <button type="submit" class="btn btn-cyber btn-cyber-primary">
+                                        <i class="fas fa-save me-2"></i>
+                                        {% if atividade %}Salvar Alterações{% else %}Criar Atividade{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📝 Formulário de atividade carregado!');
+    
+    // Elementos do preview
+    const nomeInput = document.getElementById('id_nome');
+    const descricaoInput = document.getElementById('id_descricao');
+    const valorInput = document.getElementById('id_valor_maximo');
+    const dataInput = document.getElementById('id_data_entrega');
+    
+    const previewNome = document.getElementById('previewNome');
+    const previewDescricao = document.getElementById('previewDescricao');
+    const previewValor = document.getElementById('previewValor');
+    const previewData = document.getElementById('previewData');
+    
+    // Função para atualizar preview em tempo real
+    function atualizarPreview() {
+        if (previewNome && nomeInput) {
+            previewNome.textContent = nomeInput.value || 'Nome da Atividade';
+        }
+        
+        if (previewDescricao && descricaoInput) {
+            previewDescricao.textContent = descricaoInput.value || 'Descrição da atividade...';
+        }
+        
+        if (previewValor && valorInput) {
+            const valor = parseFloat(valorInput.value) || 10.0;
+            previewValor.textContent = valor.toFixed(1);
+        }
+        
+        if (previewData && dataInput) {
+            if (dataInput.value) {
+                const data = new Date(dataInput.value);
+                previewData.innerHTML = `<i class="fas fa-calendar me-1"></i>${data.toLocaleDateString('pt-BR')}`;
+            } else {
+                previewData.innerHTML = '<i class="fas fa-calendar me-1"></i>Sem prazo definido';
+            }
+        }
+    }
+    
+    // Event listeners para atualização em tempo real
+    if (nomeInput) nomeInput.addEventListener('input', atualizarPreview);
+    if (descricaoInput) descricaoInput.addEventListener('input', atualizarPreview);
+    if (valorInput) valorInput.addEventListener('input', atualizarPreview);
+    if (dataInput) dataInput.addEventListener('change', atualizarPreview);
+    
+    // Validação do formulário
+    const form = document.getElementById('formAtividade');
+    form.addEventListener('submit', function(e) {
+        if (valorInput) {
+            const valor = parseFloat(valorInput.value) || 0;
+            
+            if (valor <= 0) {
+                e.preventDefault();
+                alert('O valor máximo deve ser maior que zero!');
+                valorInput.focus();
+                return;
+            }
+            
+            if (valor > 100) {
+                e.preventDefault();
+                const confirmar = confirm('Valor muito alto! Tem certeza que deseja continuar?');
+                if (!confirmar) {
+                    valorInput.focus();
+                    return;
+                }
+            }
+        }
+    });
+    
+    // Atualizar preview inicial
+    atualizarPreview();
+});
+</script>
+{% endblock %}

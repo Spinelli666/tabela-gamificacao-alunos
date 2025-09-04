@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}🎁 Prêmios Pendentes - Sistema de Gamificação{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <h1 class="cyberpunk-title">
+                <span class="neon-text">🎁 PRÊMIOS PENDENTES</span>
+            </h1>
+            <div class="btn-group">
+                <a href="{% url 'caca_niquel' %}" class="btn btn-primary btn-lg">
+                    🎰 Caça-Níquel
+                </a>
+                <a href="{% url 'historico_caca_niquel' %}" class="btn btn-info btn-lg">
+                    📊 Histórico
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contador de Prêmios Pendentes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="cyberpunk-card text-center">
+                <h2 class="neon-text mb-3">
+                    ⏳ {{ premios.count }} Prêmio{{ premios.count|pluralize }} Aguardando Resgate
+                </h2>
+                {% if premios.count > 0 %}
+                    <p class="text-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Não se esqueça de entregar os prêmios aos alunos!
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista de Prêmios Pendentes -->
+    <div class="row">
+        {% for premio in premios %}
+            <div class="col-lg-6 col-xl-4 mb-4">
+                <div class="premio-card 
+                    {% if premio.recompensa == '10_reais' %}premio-dourado
+                    {% elif premio.recompensa == '5_reais' %}premio-prata  
+                    {% elif premio.recompensa == 'vale_trabalho' %}premio-bronze
+                    {% else %}premio-comum
+                    {% endif %}">
+                    
+                    <div class="premio-header">
+                        <div class="premio-emoji">
+                            {% if premio.recompensa == '10_reais' %}💰
+                            {% elif premio.recompensa == '5_reais' %}💵
+                            {% elif premio.recompensa == 'vale_trabalho' %}📝
+                            {% elif premio.recompensa == 'doce' %}🍭
+                            {% elif premio.recompensa == 'salgado' %}🥨
+                            {% endif %}
+                        </div>
+                        <div class="premio-valor">
+                            {{ premio.get_recompensa_display }}
+                        </div>
+                    </div>
+                    
+                    <div class="premio-body">
+                        <h5 class="premio-aluno">👤 {{ premio.aluno.nome }}</h5>
+                        <p class="premio-info">
+                            <small>
+                                <i class="fas fa-calendar"></i>
+                                Ganho em: {{ premio.data_jogada|date:"d/m/Y" }}<br>
+                                <i class="fas fa-clock"></i>
+                                Às: {{ premio.data_jogada|date:"H:i:s" }}
+                            </small>
+                        </p>
+                        
+                        {% if premio.recompensa == '10_reais' or premio.recompensa == '5_reais' %}
+                            <div class="premio-destaque">
+                                <i class="fas fa-star"></i>
+                                PRÊMIO EM DINHEIRO!
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="premio-footer">
+                        <div class="row g-2">
+                            <div class="col-8">
+                                <button class="btn btn-success btn-lg w-100" 
+                                        onclick="marcarResgatado({{ premio.id }})">
+                                    <i class="fas fa-check"></i>
+                                    ENTREGAR
+                                </button>
+                            </div>
+                            <div class="col-4">
+                                <button class="btn btn-danger btn-lg w-100" 
+                                        onclick="excluirPremio({{ premio.id }}, '{{ premio.aluno.nome }}', '{{ premio.get_recompensa_display }}')"
+                                        title="Excluir este prêmio">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="premio-badge">
+                        {% if premio.recompensa == '10_reais' %}🥇 SUPER RARO
+                        {% elif premio.recompensa == '5_reais' %}🥈 RARO
+                        {% elif premio.recompensa == 'vale_trabalho' %}🥉 ESPECIAL
+                        {% else %}🎯 COMUM
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="cyberpunk-card text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-gift fa-5x text-muted"></i>
+                    </div>
+                    <h3 class="text-muted">✨ Todos os prêmios foram entregues!</h3>
+                    <p class="text-muted mb-4">
+                        Não há nenhum prêmio aguardando resgate no momento.
+                    </p>
+                    <a href="{% url 'caca_niquel' %}" class="btn btn-primary btn-lg">
+                        🎰 Jogar Caça-Níquel
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Resumo de Valores -->
+    {% if premios %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="cyberpunk-card">
+                    <h4 class="mb-3">💰 Resumo Financeiro dos Prêmios Pendentes</h4>
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="valor-card">
+                                <h5 class="text-warning">💰 R$ 10,00</h5>
+                                <p>{{ total_10_reais }} prêmio{{ total_10_reais|pluralize }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="valor-card">
+                                <h5 class="text-info">💵 R$ 5,00</h5>
+                                <p>{{ total_5_reais }} prêmio{{ total_5_reais|pluralize }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="valor-card">
+                                <h5 class="text-success">🍭🥨 Lanches</h5>
+                                <p>{{ total_lanches }} prêmio{{ total_lanches|pluralize }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="valor-card">
+                                <h5 class="text-secondary">📝 Vale-trabalho</h5>
+                                <p>{{ total_vale_trabalho }} prêmio{{ total_vale_trabalho|pluralize }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.premio-card {
+    background: linear-gradient(145deg, #2d3748, #1a202c);
+    border-radius: 20px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border: 2px solid;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.premio-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+.premio-dourado {
+    border-color: #ffd700;
+    background: linear-gradient(145deg, #2d3748, #1a202c);
+}
+
+.premio-prata {
+    border-color: #c0c0c0;
+}
+
+.premio-bronze {
+    border-color: #cd7f32;
+}
+
+.premio-comum {
+    border-color: #00d4ff;
+}
+
+.premio-header {
+    background: rgba(0,0,0,0.3);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.premio-emoji {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.premio-valor {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+.premio-body {
+    padding: 20px;
+    color: white;
+}
+
+.premio-aluno {
+    color: #00d4ff;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+    margin-bottom: 15px;
+}
+
+.premio-info {
+    color: #cccccc;
+    margin-bottom: 15px;
+}
+
+.premio-destaque {
+    background: linear-gradient(90deg, #ff6b6b, #ffd700);
+    color: #000;
+    padding: 8px 12px;
+    border-radius: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.premio-footer {
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+}
+
+.premio-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.valor-card {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 10px 0;
+}
+
+.valor-card h5 {
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+/* Efeitos especiais para prêmios raros */
+.premio-dourado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+    animation: shimmer 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.premio-prata::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent, rgba(192, 192, 192, 0.1), transparent);
+    animation: shimmer 4s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function marcarResgatado(jogadaId) {
+    if (confirm('⚠️ Confirmar que este prêmio foi entregue ao aluno?\n\nEsta ação não pode ser desfeita!')) {
+        // Feedback visual imediato
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        button.disabled = true;
+        
+        fetch(`/caca-niquel/marcar-resgatado/${jogadaId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                // Animação de sucesso
+                button.innerHTML = '<i class="fas fa-check"></i> ENTREGUE!';
+                button.className = 'btn btn-success btn-lg w-100';
+                
+                // Recarregar página após animação
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                alert('❌ Erro ao marcar como entregue: ' + (data.erro || 'Erro desconhecido'));
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('❌ Erro de conexão!');
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+}
+
+// Função para excluir um prêmio
+function excluirPremio(jogadaId, nomeAluno, recompensa) {
+    if (confirm(`⚠️ ATENÇÃO!\n\nDeseja EXCLUIR permanentemente o prêmio?\n\n👤 Aluno: ${nomeAluno}\n🎁 Prêmio: ${recompensa}\n\n⚠️ Esta ação NÃO pode ser desfeita!\nO prêmio será removido do histórico.`)) {
+        // Confirmar novamente para prêmios em dinheiro
+        if (recompensa.includes('R$')) {
+            if (!confirm(`💰 ÚLTIMO AVISO!\n\nVocê está prestes a EXCLUIR um prêmio EM DINHEIRO!\n\n${recompensa} para ${nomeAluno}\n\n❌ Esta ação é IRREVERSÍVEL!\n\nTem CERTEZA ABSOLUTA?`)) {
+                return;
+            }
+        }
+        
+        const button = event.target;
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+        
+        fetch(`/caca-niquel/excluir-premio/${jogadaId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.sucesso) {
+                // Feedback visual
+                button.innerHTML = '<i class="fas fa-check"></i>';
+                button.className = 'btn btn-secondary btn-lg w-100';
+                
+                // Recarregar página
+                setTimeout(() => {
+                    location.reload();
+                }, 800);
+            } else {
+                alert('❌ Erro ao excluir prêmio: ' + (data.erro || 'Erro desconhecido'));
+                button.innerHTML = originalHTML;
+                button.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('❌ Erro de conexão!');
+            button.innerHTML = originalHTML;
+            button.disabled = false;
+        });
+    }
+}
+
+// Efeito de confetes para prêmios especiais (opcional)
+function celebrarPremio() {
+    // Aqui poderia adicionar efeito de confetes ou celebração
+    console.log('🎉 Prêmio entregue com sucesso!');
+}
+</script>
+{% endblock %}

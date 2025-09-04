@@ -1,0 +1,446 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Atividades{% endblock %}
+
+{% block content %}
+<div class="container-fluid main-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold" style="color: var(--cor-secondary); text-shadow: 0 0 15px var(--cor-secondary);">
+                        <i class="fas fa-tasks me-3"></i>
+                        GERENCIAR ATIVIDADES
+                    </h1>
+                    <p class="lead text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        {% if page_obj %}
+                            {{ page_obj.paginator.count }} atividade{{ page_obj.paginator.count|pluralize }} cadastrada{{ page_obj.paginator.count|pluralize }}
+                        {% else %}
+                            Nenhuma atividade cadastrada
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div>
+                    <a href="{% url 'criar_atividade' %}" class="btn btn-cyber btn-cyber-primary">
+                        <i class="fas fa-plus me-2"></i>Nova Atividade
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if page_obj.object_list %}
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card">
+                <div class="card-header">
+                    <i class="fas fa-list me-2"></i>
+                    LISTA DE ATIVIDADES
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark cyber-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="5%">#</th>
+                                    <th width="25%">Nome</th>
+                                    <th width="30%">Descrição</th>
+                                    <th width="12%">Valor Máximo</th>
+                                    <th width="12%">Data Entrega</th>
+                                    <th width="8%">Status</th>
+                                    <th width="8%">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for atividade in page_obj %}
+                                <tr {% if not atividade.ativa %}class="table-secondary"{% endif %}>
+                                    <td class="text-center">
+                                        {{ forloop.counter0|add:page_obj.start_index }}
+                                    </td>
+                                    
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if atividade.ativa %}
+                                                <i class="fas fa-play-circle text-success me-2"></i>
+                                            {% else %}
+                                                <i class="fas fa-pause-circle text-warning me-2"></i>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ atividade.nome }}</strong>
+                                                <br>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar-plus me-1"></i>
+                                                    Criada em {{ atividade.data_criacao|date:"d/m/Y" }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        {% if atividade.descricao %}
+                                            <p class="mb-1">{{ atividade.descricao|truncatechars:60 }}</p>
+                                            {% if atividade.descricao|length > 60 %}
+                                                <small class="text-info">
+                                                    <i class="fas fa-eye me-1"></i>Ver mais...
+                                                </small>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">
+                                                <i class="fas fa-minus me-1"></i>Sem descrição
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <span class="fw-bold" style="color: var(--cor-success); text-shadow: 0 0 5px var(--cor-success);">
+                                            <i class="fas fa-star me-1"></i>
+                                            {{ atividade.valor_maximo|floatformat:1 }}
+                                        </span>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        {% if atividade.data_entrega %}
+                                            <small>
+                                                {{ atividade.data_entrega|date:"d/m/Y H:i" }}
+                                                <br>
+                                                {% now "Y-m-d H:i" as agora %}
+                                                {% if atividade.data_entrega|date:"Y-m-d H:i" < agora %}
+                                                    <span class="text-danger">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>Vencida
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-success">
+                                                        <i class="fas fa-clock me-1"></i>Em aberto
+                                                    </span>
+                                                {% endif %}
+                                            </small>
+                                        {% else %}
+                                            <span class="text-muted">
+                                                <i class="fas fa-infinity me-1"></i>Sem prazo
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        {% if atividade.ativa %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Ativa
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-pause me-1"></i>Inativa
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                <i class="fas fa-cog"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-dark">
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'gerenciar_notas_atividade' atividade.id %}">
+                                                        <i class="fas fa-star me-2"></i>Gerenciar Notas
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="{% url 'editar_atividade' atividade.id %}">
+                                                        <i class="fas fa-edit me-2"></i>Editar
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger" type="button"
+                                                            onclick="confirmarExclusaoAtividade({{ atividade.id }}, '{{ atividade.nome|escapejs }}')">
+                                                        <i class="fas fa-trash me-2"></i>Excluir
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Paginação -->
+                {% if page_obj.has_other_pages %}
+                <div class="card-footer">
+                    <nav aria-label="Navegação das atividades">
+                        <ul class="pagination pagination-dark justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    
+                    <div class="text-center mt-2">
+                        <small class="text-muted">
+                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} 
+                            ({{ page_obj.paginator.count }} atividades no total)
+                        </small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Caso não há atividades -->
+    <div class="row">
+        <div class="col-12">
+            <div class="cyber-card text-center py-5">
+                <div class="text-muted">
+                    <i class="fas fa-tasks fa-4x mb-4" style="opacity: 0.3;"></i>
+                    <h3>Nenhuma atividade encontrada</h3>
+                    <p class="lead mb-4">
+                        Comece criando sua primeira atividade para poder lançar notas.
+                    </p>
+                    <a href="{% url 'criar_atividade' %}" class="btn btn-cyber btn-cyber-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Criar Primeira Atividade
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal de confirmação para exclusão - VERSÃO ULTRA SIMPLES -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true" style="z-index: 999999 !important;">
+    <div class="modal-dialog modal-dialog-centered" style="z-index: 999999 !important; pointer-events: auto !important;">
+        <div class="modal-content bg-dark border border-danger" style="z-index: 999999 !important; pointer-events: auto !important;">
+            <div class="modal-header border-danger">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" 
+                        style="pointer-events: auto !important; z-index: 999999 !important;"></button>
+            </div>
+            <div class="modal-body text-white">
+                <p>Tem certeza que deseja excluir a atividade <strong class="text-danger" id="nomeAtividade"></strong>?</p>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Atenção!</strong> Todas as notas desta atividade também serão excluídas.
+                </div>
+            </div>
+            <div class="modal-footer border-danger">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        style="pointer-events: auto !important; z-index: 999999 !important; cursor: pointer !important;">
+                    Cancelar
+                </button>
+                <form id="deleteForm" method="post" style="display: inline; pointer-events: auto !important; z-index: 999999 !important;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"
+                            style="pointer-events: auto !important; z-index: 999999 !important; cursor: pointer !important;">
+                        <i class="fas fa-trash me-2"></i>Excluir Atividade
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<!-- CSS específico apenas para o modal -->
+<style>
+/* FORÇAR MODAL PARA FUNCIONAR - z-index extremamente alto */
+.modal {
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+}
+
+.modal-backdrop {
+    z-index: 999998 !important;
+    pointer-events: none !important; /* backdrop não deve bloquear cliques no modal */
+}
+
+.modal-dialog {
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+    position: relative !important;
+}
+
+.modal-content {
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+    position: relative !important;
+}
+
+/* TODOS os elementos do modal devem ser clicáveis */
+.modal * {
+    pointer-events: auto !important;
+}
+
+.modal .btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 999999 !important;
+    position: relative !important;
+}
+
+.modal form {
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+}
+
+.modal button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 999999 !important;
+}
+
+/* ID específico para maior especificidade */
+#deleteModal {
+    z-index: 9999999 !important;
+    pointer-events: auto !important;
+}
+
+#deleteModal * {
+    pointer-events: auto !important;
+}
+
+/* Remover qualquer overlay que possa estar interferindo */
+body.modal-open {
+    pointer-events: auto !important;
+}
+
+/* Garantir que o backdrop não interfira */
+.modal-backdrop.show {
+    pointer-events: none !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// JavaScript LIMPO e SIMPLES para exclusão
+function confirmarExclusaoAtividade(atividadeId, nomeAtividade) {
+    console.log('🗑️ Iniciando exclusão:', atividadeId, nomeAtividade);
+    
+    // Definir nome da atividade
+    document.getElementById('nomeAtividade').textContent = nomeAtividade;
+    
+    // Definir URL do formulário
+    const deleteUrl = `/atividades/${atividadeId}/deletar/`;
+    document.getElementById('deleteForm').action = deleteUrl;
+    
+    console.log('� URL configurada:', deleteUrl);
+    
+    // Mostrar modal usando Bootstrap
+    const modalElement = document.getElementById('deleteModal');
+    
+    // Forçar estilo inline para garantir que funcione
+    modalElement.style.zIndex = '9999999';
+    modalElement.style.pointerEvents = 'auto';
+    
+    const modal = new bootstrap.Modal(modalElement, {
+        backdrop: true,
+        keyboard: true,
+        focus: true
+    });
+    
+    // Forçar todos os elementos do modal para serem clicáveis
+    setTimeout(() => {
+        const modalContent = modalElement.querySelector('.modal-content');
+        const buttons = modalElement.querySelectorAll('button, .btn');
+        const form = modalElement.querySelector('form');
+        
+        if (modalContent) {
+            modalContent.style.zIndex = '9999999';
+            modalContent.style.pointerEvents = 'auto';
+        }
+        
+        buttons.forEach(btn => {
+            btn.style.pointerEvents = 'auto';
+            btn.style.cursor = 'pointer';
+            btn.style.zIndex = '9999999';
+            btn.style.position = 'relative';
+        });
+        
+        if (form) {
+            form.style.pointerEvents = 'auto';
+            form.style.zIndex = '9999999';
+        }
+        
+        console.log('🎯 Modal configurado para ser clicável');
+    }, 100);
+    
+    modal.show();
+    
+    console.log('� Modal exibido');
+}
+
+// Inicialização simples
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📋 Sistema de atividades carregado!');
+    
+    // Testar se modal existe
+    const modal = document.getElementById('deleteModal');
+    console.log('Modal encontrado:', modal ? 'SIM' : 'NÃO');
+    
+    // Testar Bootstrap
+    console.log('Bootstrap disponível:', typeof bootstrap !== 'undefined' ? 'SIM' : 'NÃO');
+    
+    // Configurar evento para quando o modal fechar
+    if (modal) {
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Limpar todos os backdrops
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            
+            // Remover classe modal-open do body
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        });
+    }
+    
+    // Limpar qualquer modal backdrop que possa ter ficado
+    const existingBackdrops = document.querySelectorAll('.modal-backdrop');
+    existingBackdrops.forEach(backdrop => backdrop.remove());
+});
+</script>
+{% endblock %}
