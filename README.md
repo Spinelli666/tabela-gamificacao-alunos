@@ -32,23 +32,21 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. **Configure as variáveis de ambiente (opcional):**
-```bash
-cp .env.example .env
-# Edite o arquivo .env se necessário
-```
-
-5. **Execute as migrações:**
+4. **Execute as migrações:**
 ```bash
 python manage.py migrate
 ```
 
-6. **Crie um superusuário:**
+5. **Crie um superusuário:**
 ```bash
 python manage.py createsuperuser
 ```
 
-7. **Execute o servidor:**
+6. **Execute o servidor:**
 ```bash
 python manage.py runserver
 ```
+
+7. **Acesse o sistema:**
+- **URL:** http://127.0.0.1:8000
+- **Admin:** http://127.0.0.1:8000/admin
